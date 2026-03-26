@@ -279,7 +279,7 @@ export function bdscriptValidate(document, collection) {
                 '$addStringSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
                 '$addStringSelectOption':{varLabel:['String Select ID'],varKind:vscode.CompletionItemKind.Struct,argNum:5},
                 '$addChannelSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
-                '$addMentionableSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
+                '$addMentionableSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5}
             };
             const {varLabel = null, varKind, argNum} = varLabelMap[func.tagStart] ?? {};
             if(varLabel && index === argNum) {
