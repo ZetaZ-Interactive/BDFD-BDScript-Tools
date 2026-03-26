@@ -57,7 +57,7 @@ This is a unique feature which allows you to use comments (`$c[]`) in a new way 
 For example when you'll include `$c[$bdsDiagnosticDisable]` in your code it will disable diagnostics collection in the current file
 <details>
 <summary>Click to show preview</summary>
-<img src="https://raw.githubusercontent.com/ZetaZ-Interactive/BDFD-BDScript-Tools/main/assets/previews/directives.png" width="800" height="356"/>\
+<img src="https://raw.githubusercontent.com/ZetaZ-Interactive/BDFD-BDScript-Tools/main/assets/previews/directives.png" width="800" height="356"/>
 </details>
 
 You can find a complete list of directives in the autocomplete when inside of comments with description about what they do
