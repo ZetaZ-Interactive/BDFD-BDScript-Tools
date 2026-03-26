@@ -1,0 +1,96 @@
+{
+	"name": "bdfd-bdscript-extension",
+	"displayName": "BDFD BDScript Tools",
+	"description": "Ever wanted to see all of your 428 errors in your BDScript code without running it? Well now you can with this extension",
+	"icon": "assets/icons/ext-icon.png",
+	"publisher": "ZetaZInteractive",
+	"version": "0.10.10",
+	"repository": {
+		"url": "https://github.com/ZetaZ-Interactive/BDFD-BDScript-Tools"
+	},
+	"author": {
+		"name": "BARTR815",
+		"url": "https://github.com/BARTR815"
+	},
+	"keywords": [
+		"BDFD",
+		"BDScript",
+		"Bot Designer For Discord"
+	],
+	"main": "./dist/extension.js",
+	"browser": "./dist/extension.js",
+	"engines": {
+		"vscode": "^1.108.1"
+	},
+	"type": "module",
+	"extensionKind": [
+		"workspace",
+		"ui"
+	],
+	"activationEvents": [
+		"onLanguage:bdscript"
+	],
+	"categories": [
+		"Programming Languages"
+	],
+	"contributes": {
+		"languages": [
+			{
+				"id": "bdscript",
+				"extensions": [
+					".bds"
+				],
+				"aliases": [
+					"BDScript",
+					"bdscript"
+				],
+				"configuration": "./language-configuration.json",
+				"icon": {
+					"dark": "./assets/icons/lang-icon.png",
+					"light": "./assets/icons/lang-icon.png"
+				}
+			}
+		],
+		"grammars": [
+			{
+				"language": "bdscript",
+				"scopeName": "source.bdscript",
+				"path": "./syntaxes/bdscript.tmLanguage.json"
+			}
+		],
+		"configuration":{
+			"title": "BDScript",
+			"properties": {
+				"bdscript.changeCodeHighlight":{
+					"type":"object",
+					"description":"Allows you to import your code highlight directly from BDFD App",
+					"default":{"defaultTextHighlight":{"color":4288341353,"style":0},"numberHighlight":{"color":4291926630,"style":0},"fallbackHighlight":{"color":4285791231,"style":0},"semicolonHighlight":{"color":4294920266,"style":0},"functionsHighlights":{"$nomention":{"color":4294932473,"style":0},"$catch":{"color":4288905212,"style":0},"$else":{"color":4288905212,"style":0},"$elseif":{"color":4288905212,"style":0},"$endif":{"color":4288905212,"style":0},"$endtry":{"color":4288905212,"style":0},"$error":{"color":4288905212,"style":0},"$if":{"color":4288905212,"style":0},"$try":{"color":4288905212,"style":0},"$c":{"color":4294967168,"style":0}}}
+				},
+				"bdscript.autocompleteInsertType":{
+					"type":"string",
+					"description":"Specifies what should be inserted after using autocomplete on functions",
+					"default":"fullSnippet",
+					"enum":[
+						"fullSnippet",
+						"emptySnippet",
+						"fullTag",
+						"tagStart",
+						"emptyArg"
+					],
+					"enumDescriptions": [
+						"Inserts the function with all argument names as snippet placeholders (Used by the Web Editor)",
+						"Inserts the function with empty snippet placeholders",
+						"Inserts the full function tag as plain text (Used by the BDFD app)",
+						"Inserts only the function name",
+						"Inserts the function with empty brackets and cursor inside"
+					]
+				},
+				"bdscript.enableFeaturesForAdvancedUsers":{
+					"type":"boolean",
+					"description": "When enabled disables lobotomy",
+					"default":false
+				}
+			}
+		}
+	}
+}

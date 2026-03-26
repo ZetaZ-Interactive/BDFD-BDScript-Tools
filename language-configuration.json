@@ -1,0 +1,47 @@
+{
+    "comments": {
+        "blockComment": ["$c[", "]"]
+    },
+    "brackets": [
+        ["[", "]"]
+    ],
+    "autoClosingPairs": [
+        ["[", "]"],
+        ["{", "}"]
+    ],
+    "surroundingPairs": [
+        ["***", "***"],
+        ["**", "**"],
+        ["*", "*"],
+        ["```", "```"],
+        ["`", "`"]
+    ],
+    "colorizedBracketPairs": [
+        ["[", "]"]
+    ],
+    "wordPattern": "(?:\\$\\$c\\[\\]|%\\{DOL\\}%|\\$)?[a-zA-Z0-9_\\.\\(\\)]+",
+    "onEnterRules": [
+        {
+            "beforeText": "\\$if\\[|\\$async\\[|\\$try\\b",
+            "action": {
+                "indent": "indent"
+            }
+        },
+        {
+            "beforeText": "\\$elseif\\[|\\$else\\b|\\$catch\\b",
+            "action": {
+                "indent": "indent"
+            }
+        },
+        {
+            "beforeText": "\\$endif\\b|\\$endasync\\b|\\$endtry\\b",
+            "action": {
+                "indent": "outdent"
+            }
+        }
+    ],
+    "indentationRules": {
+        "increaseIndentPattern": "\\$if\\[|\\$async\\[|\\$try\\b",
+        "decreaseIndentPattern": "\\$elseif\\[|\\$else\\b|\\$catch\\b|\\$endif\\b|\\$endasync\\b|\\$endtry\\b"
+    }
+}
