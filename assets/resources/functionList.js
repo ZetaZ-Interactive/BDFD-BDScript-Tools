@@ -21,7 +21,7 @@ functions.forEach(func => {
     if(operators.test(func.tag)) func.kind = 23;
     if(constants.test(func.tag)) func.kind = 20;
     if(events.test(func.tag)) func.kind = 22;
-    if(func.tag.includes("$awaitReactions[\u003cCommand name;Reaction\u003e;...]")) func.arguments = [{"name":"Command name","description":"Awaited reaction command name","type":"String","required":true},{"name":"Reaction","type":"Emoji","required":true}];
+    if(func.tag.includes("$awaitReactions[\u003cCommand name;Reaction\u003e;...]")) func.arguments = [{"name":"Command name","description":"Awaited reaction command name","type":"String","required":true,"repeatable":true},{"name":"Reaction","type":"Emoji","required":true,"repeatable":true}];
     if(func.tag.includes("$checkContains[Text;...]")) {
         func.tag = "$checkContains[Text;Phrases;...]";
         func.arguments = [{"name":"Text","type":"String","required":true,"empty":true},{"name":"Phrases","type":"String","required":true,"empty":true,"repeatable":true}];

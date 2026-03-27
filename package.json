@@ -4,7 +4,7 @@
 	"description": "Extension which gives you useful tools that might help you when working with BDScript",
 	"icon": "assets/icons/ext-icon.png",
 	"publisher": "ZetaZInteractive",
-	"version": "0.10.10",
+	"version": "0.10.11",
 	"repository": {
 		"url": "https://github.com/ZetaZ-Interactive/BDFD-BDScript-Tools"
 	},
