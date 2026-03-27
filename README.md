@@ -24,28 +24,28 @@ Every function has its own autocomplete with documentation\
 Also every temporary variable, app variable, JSON key, component ID and async scope in the current file gets its own autocomplete too just like enum values which appear in the autocomplete whenever you need them
 <details>
 <summary>Click to show preview</summary>
-<img src="https://raw.githubusercontent.com/ZetaZ-Interactive/BDFD-BDScript-Tools/main/assets/previews/autocomplete.png" width="448" height="356"/>
+<img src="https://raw.githubusercontent.com/ZetaZ-Interactive/BDFD-BDScript-Tools/main/assets/previews/autocomplete.png"/>
 </details>
 
 ## Hover Info
 When you hover over a function you get its documentation
 <details>
 <summary>Click to show preview</summary>
-<img src="https://raw.githubusercontent.com/ZetaZ-Interactive/BDFD-BDScript-Tools/main/assets/previews/hover.png" width="537" height="357"/>
+<img src="https://raw.githubusercontent.com/ZetaZ-Interactive/BDFD-BDScript-Tools/main/assets/previews/hover.png"/>
 </details>
 
 ## Signature Help
 Whenever you're inside of a function you get information about the current function and argument which you are currently using
 <details>
 <summary>Click to show preview</summary>
-<img src="https://raw.githubusercontent.com/ZetaZ-Interactive/BDFD-BDScript-Tools/main/assets/previews/signature.png" width="536" height="358"/>
+<img src="https://raw.githubusercontent.com/ZetaZ-Interactive/BDFD-BDScript-Tools/main/assets/previews/signature.png"/>
 </details>
 
 ## Diagnostic Collection
 Possibly the most useful feature of this extension which allows you to find errors in the code before running it
 <details>
 <summary>Click to show preview</summary>
-<img src="https://raw.githubusercontent.com/ZetaZ-Interactive/BDFD-BDScript-Tools/main/assets/previews/diagnostics.png" width="719" height="355"/>
+<img src="https://raw.githubusercontent.com/ZetaZ-Interactive/BDFD-BDScript-Tools/main/assets/previews/diagnostics.png"/>
 </details>
 
 ## Color Provider
@@ -57,7 +57,7 @@ This is a unique feature which allows you to use comments (`$c[]`) in a new way 
 For example when you'll include `$c[$bdsDiagnosticDisable]` in your code it will disable diagnostics collection in the current file
 <details>
 <summary>Click to show preview</summary>
-<img src="https://raw.githubusercontent.com/ZetaZ-Interactive/BDFD-BDScript-Tools/main/assets/previews/directives.png" width="800" height="356"/>
+<img src="https://raw.githubusercontent.com/ZetaZ-Interactive/BDFD-BDScript-Tools/main/assets/previews/directives.png"/>
 </details>
 
 You can find a complete list of directives in the autocomplete when inside of comments with description about what they do
