@@ -313,7 +313,7 @@ export function activate(context) {
                     const isLast = nextClose !== -1 && (nextSemi === -1 || nextClose < nextSemi);
                     if(!isLast) activeArg = repeatableIndex;
                 }
-                const signature = new vscode.SignatureInformation(activeFunc.fullTag, activeFunc.description);
+                const signature = new vscode.SignatureInformation(activeFunc.fullTag, activeFunc.signatureDocs);
                 signature.parameters = activeFunc.arguments.map(arg => new vscode.ParameterInformation(
                     arg.name,
                     `${argType(arg)} ${isRequired(arg)}${isEmptiable(arg)}${isRepeatable(arg)}${enumValues(arg) || ''}${arg.description ? `\n${arg.description}` : ''}\n`

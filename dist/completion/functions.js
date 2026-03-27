@@ -228,8 +228,9 @@ export function parseFunctions(functions) {
         }
         const isCopy = seenNames.has(name);
         seenNames.add(name);
-        parsedFunctions.hoverDocs = docs(parsedFunctions, true, isCopy);
-        parsedFunctions.completionDocs = docs(parsedFunctions, false, isCopy);
+        parsedFunctions.hoverDocs = docs(parsedFunctions, true, isCopy, false);
+        parsedFunctions.completionDocs = docs(parsedFunctions, false, isCopy, false);
+        parsedFunctions.signatureDocs = docs(parsedFunctions, false, isCopy, true);
         return parsedFunctions;
     });
 }

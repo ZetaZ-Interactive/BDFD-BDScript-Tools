@@ -15,7 +15,7 @@ export function getDocumentFlags(document) {
     cachedDocumentFlags.set(document, flags);
     return flags;
 }
-export function docs(func, addTag, isCopy) {
+export function docs(func, addTag, isCopy, isSignature) {
     const mkd = new vscode.MarkdownString();
     mkd.isTrusted = true;
     let docs = addTag?`**${func.fullTag}**\n\n${func.description}\n`:`${func.description}\n`;
@@ -27,7 +27,7 @@ export function docs(func, addTag, isCopy) {
     func.isExperimental&&functionTags.push('📢 `Experiment`');
     func.beWise&&functionTags.push('🧙‍♂️ `Use this wisely!`');
     docs += functionTags.length?'\n'+functionTags.join('\n\n')+'\n':'';
-    if (func.arguments.length) {
+    if (func.arguments.length && !isSignature) {
         docs += '\n**Arguments:**\n\n';
         func.arguments.forEach(arg => {
             const argumentType = argType(arg);
