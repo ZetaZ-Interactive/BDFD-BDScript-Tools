@@ -47,13 +47,13 @@ export function argType(arg) {
     return 'Type: ' + arg.type;
 }
 export function isRequired(arg) {
-    return (arg.required?'(required)':'(optional)'); // ⚠️ : ⁉️
+    return (arg.required?'(required)':'(optional)');
 }
 export function isEmptiable(arg) {
-    return arg.empty?' (emptiable)':''; // ❓
+    return arg.empty?' (emptiable)':'';
 }
 export function isRepeatable(arg) {
-    return arg.repeatable?' (repeatable)':''; // 🔁
+    return arg.repeatable?' (repeatable)':'';
 }
 export function enumValues(arg) {
     return arg.enumData?`\n[${arg.enumData.join(', ')}]`:'';
