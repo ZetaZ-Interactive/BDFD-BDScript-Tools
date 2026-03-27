@@ -148,35 +148,40 @@ export function parseIDs(document) {
     const prefix = advanced?'(?:\\$\\$c\\[\\]|%\\{DOL\\}%|\\$)':'(?:\\$)';
     const IDsData = [
         {
-            regex: new RegExp(`${prefix}async\\[([^\\]]+)\\]`, 'g'),
+            regex: new RegExp(`${prefix}async\\[`, 'g'),
             type: 'async',
-            label: 'Async Scope'
+            label: 'Async Scope',
+            argIndex: 0
         },
         {
-            regex: new RegExp(`${prefix}(?:newSelectMenu)\\[([^\\];]+)`, 'g'),
-            type: 'interaction',
-            label: 'Interaction'
-        },
-        {
-            regex: new RegExp(`${prefix}(?:addButton)\\[(?:yes|no|true|false);([^\\];]+)`, 'g'),
+            regex: new RegExp(`${prefix}(?:newSelectMenu)\\[`, 'g'),
             type: 'interaction',
             label: 'Interaction',
-            addDepth: true
+            argIndex: 0
         },
         {
-            regex: new RegExp(`${prefix}(?:addButtonCV2|addStringSelect|addChannelSelect|addMentionableSelect|addRoleSelect|addUserSelect)\\[([^\\];]+)`, 'g'),
+            regex: new RegExp(`${prefix}(?:addButton)\\[`, 'g'),
+            type: 'interaction',
+            label: 'Interaction',
+            argIndex: 1
+        },
+        {
+            regex: new RegExp(`${prefix}(?:addButtonCV2|addStringSelect|addChannelSelect|addMentionableSelect|addRoleSelect|addUserSelect)\\[`, 'g'),
             type: 'interactionComponent',
-            label: 'Interaction Component'
+            label: 'Interaction Component',
+            argIndex: 0
         },
         {
-            regex: new RegExp(`${prefix}(?:addActionRow|addSection|addContainer|addMediaGallery)\\[([^\\];]+)`, 'g'),
+            regex: new RegExp(`${prefix}(?:addActionRow|addSection|addContainer|addMediaGallery)\\[`, 'g'),
             type: 'messageComponent',
-            label: 'Message Component'
+            label: 'Message Component',
+            argIndex: 0
         },
         {
-            regex: new RegExp(`${prefix}(?:addTextInput)\\[([^\\];]+)`, 'g'),
+            regex: new RegExp(`${prefix}(?:addTextInput)\\[`, 'g'),
             type: 'modalInput',
-            label: 'Modal Input'
+            label: 'Modal Input',
+            argIndex: 0
         }
     ];
     const discardIfMatch = /[^a-zA-Z0-9_\.\(\)]/;
@@ -187,19 +192,38 @@ export function parseIDs(document) {
             id.regex.lastIndex = 0;
             let match;
             while((match = id.regex.exec(line)) !== null) {
-                const idName = match[1];
-                if(!idName || discardIfMatch.test(idName)) continue;
-                const idKey = `${id.type}:${idName}`;
-                const bracketPos = match.index + match[0].length - match[1].length - 1;
-                let depth = id?.addDepth?1:0;
-                let end = bracketPos;
-                while(end < line.length) {
-                    if(line[end] === '[') depth++;
-                    if(line[end] === ']') depth--;
-                    end++;
-                    if(depth === 0) break;
+                const callStart = match.index;
+                const openBracket = match.index + match[0].length - 1;
+                let depth = 0, argCount = 0, argStart = openBracket + 1, idName = null;
+                for(let j = openBracket; j < line.length; j++) {
+                    const char = line[j];
+                    if(char === '[') depth++;
+                    else if(char === ']') {
+                        depth--;
+                        if(depth === 0) {
+                            if(argCount === id.argIndex) idName = line.slice(argStart, j).trim();
+                            break;
+                        }
+                    } else if(char === ';' && depth === 1) {
+                        if(argCount === id.argIndex) { idName = line.slice(argStart, j).trim(); break; }
+                        argCount++;
+                        argStart = j + 1;
+                    }
                 }
-                const range = new vscode.Range(i, match.index, i, end);
+                if(!idName || discardIfMatch.test(idName)) continue;
+                let d = 0;
+                let end = openBracket;
+                while(end < line.length) {
+                    if(line[end] === '[') d++;
+                    else if(line[end] === ']') {
+                        d--; if(d === 0) {
+                            end++; break;
+                        }
+                    }
+                    end++;
+                }
+                const idKey = `${id.type}:${idName}`;
+                const range = new vscode.Range(i, callStart, i, end);
                 if(!ids.has(idKey)) {
                     ids.set(idKey, {name:idName, label:id.label, ranges:[range]});
                 } else {
@@ -241,7 +265,7 @@ export function parseFunctions(functions) {
     });
 }
 export function buildFunctionSnippet(func, empty) {
-    return !func.arguments.length ? func.name : func.arguments.map((arg, i) => `\${${i+1}:${empty?'':arg.name}}`).join(';');
+    return !func.arguments.length?func.name:func.arguments.map((arg, i) => `\${${i+1}:${empty?'':arg.name}}`).join(';');
 }
 vscode.workspace.onDidChangeTextDocument(event => {
     cachedVariables.delete(event.document);

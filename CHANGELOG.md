@@ -1,4 +1,6 @@
 # Changelog
+## 0.10.12
+- Fixed diagnostics showing incorrect error for $addButton[]
 ## 0.10.11
 - Small changes
 ## 0.10.10
