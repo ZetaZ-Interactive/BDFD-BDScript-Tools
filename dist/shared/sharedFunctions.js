@@ -39,7 +39,7 @@ export function docs(func, addTag, isCopy, isSignature) {
             docs += `- \`${arg.name}\`: ${argumentType} ${required}${emptiable}${repeatable}${desc}${enumVals}\n`;
         });
     }
-    docs += `\n[BDScript Reference](https://wiki.botdesignerdiscord.com/bdscript/${func.name}${isCopy?'Complex':''}.html)`;
+    docs += `\n[BDScript Reference](https://wiki.botdesignerdiscord.com/${func.isPremium?'premium':'bdscript'}/${func.name}${isCopy?'Complex':''}.html)`;
     mkd.appendMarkdown(docs);
     return mkd;
 }
