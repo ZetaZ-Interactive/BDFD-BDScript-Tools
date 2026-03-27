@@ -273,13 +273,14 @@ export function bdscriptValidate(document, collection) {
                 '$addTextDisplay':{varLabel:['Container ID','Section ID'],varKind:vscode.CompletionItemKind.Field,argNum:1},
                 '$addSeparator':{varLabel:['Container ID'],varKind:vscode.CompletionItemKind.Field,argNum:2},
                 '$addMediaGalleryItem':{varLabel:['Gallery ID'],varKind:vscode.CompletionItemKind.Field,argNum:3},
+                '$addThumbnail':{varLabel:['Section ID'],varKind:vscode.CompletionItemKind.Field,argNum:4},
                 '$addButtonCV2':{varLabel:['Action Row ID','Section ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
                 '$addRoleSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
                 '$addUserSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
                 '$addStringSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
                 '$addStringSelectOption':{varLabel:['String Select ID'],varKind:vscode.CompletionItemKind.Struct,argNum:5},
                 '$addChannelSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
-                '$addMentionableSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
+                '$addMentionableSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5}
             };
             const {varLabel = null, varKind, argNum} = varLabelMap[func.tagStart] ?? {};
             if(varLabel && index === argNum) {

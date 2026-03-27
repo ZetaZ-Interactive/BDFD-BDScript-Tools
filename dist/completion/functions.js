@@ -153,9 +153,15 @@ export function parseIDs(document) {
             label: 'Async Scope'
         },
         {
-            regex: new RegExp(`${prefix}(?:addButton|newSelectMenu)\\[([^\\];]+)`, 'g'),
+            regex: new RegExp(`${prefix}(?:newSelectMenu)\\[([^\\];]+)`, 'g'),
             type: 'interaction',
             label: 'Interaction'
+        },
+        {
+            regex: new RegExp(`${prefix}(?:addButton)\\[(?:yes|no|true|false);([^\\];]+)`, 'g'),
+            type: 'interaction',
+            label: 'Interaction',
+            addDepth: true
         },
         {
             regex: new RegExp(`${prefix}(?:addButtonCV2|addStringSelect|addChannelSelect|addMentionableSelect|addRoleSelect|addUserSelect)\\[([^\\];]+)`, 'g'),
@@ -185,7 +191,7 @@ export function parseIDs(document) {
                 if(!idName || discardIfMatch.test(idName)) continue;
                 const idKey = `${id.type}:${idName}`;
                 const bracketPos = match.index + match[0].length - match[1].length - 1;
-                let depth = 0;
+                let depth = id?.addDepth?1:0;
                 let end = bracketPos;
                 while(end < line.length) {
                     if(line[end] === '[') depth++;
@@ -228,8 +234,9 @@ export function parseFunctions(functions) {
         }
         const isCopy = seenNames.has(name);
         seenNames.add(name);
-        parsedFunctions.hoverDocs = docs(parsedFunctions, true, isCopy);
-        parsedFunctions.completionDocs = docs(parsedFunctions, false, isCopy);
+        parsedFunctions.hoverDocs = docs(parsedFunctions, true, isCopy, false);
+        parsedFunctions.completionDocs = docs(parsedFunctions, false, isCopy, false);
+        parsedFunctions.signatureDocs = docs(parsedFunctions, false, isCopy, true);
         return parsedFunctions;
     });
 }

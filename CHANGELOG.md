@@ -1,4 +1,6 @@
 # Changelog
+## 0.10.11
+- Small changes
 ## 0.10.10
 - Added BDScript Wiki links to function documentation
 - Improved sorting of completion items

@@ -242,7 +242,7 @@ export function activate(context) {
                         if(arg?.type === 'Color') {
                             const trimmed = argValue.trim();
                             let r, g, b;
-                            if(/^#[0-9a-fA-F]{6}$/.test(trimmed)) {
+                            if(/^#?[0-9a-fA-F]{6}$/.test(trimmed)) {
                                 r = parseInt(trimmed.slice(1, 3), 16) / 255;
                                 g = parseInt(trimmed.slice(3, 5), 16) / 255;
                                 b = parseInt(trimmed.slice(5, 7), 16) / 255;
@@ -313,7 +313,7 @@ export function activate(context) {
                     const isLast = nextClose !== -1 && (nextSemi === -1 || nextClose < nextSemi);
                     if(!isLast) activeArg = repeatableIndex;
                 }
-                const signature = new vscode.SignatureInformation(activeFunc.fullTag, activeFunc.description);
+                const signature = new vscode.SignatureInformation(activeFunc.fullTag, activeFunc.signatureDocs);
                 signature.parameters = activeFunc.arguments.map(arg => new vscode.ParameterInformation(
                     arg.name,
                     `${argType(arg)} ${isRequired(arg)}${isEmptiable(arg)}${isRepeatable(arg)}${enumValues(arg) || ''}${arg.description ? `\n${arg.description}` : ''}\n`
