@@ -1,7 +1,7 @@
 {
 	"name": "bdfd-bdscript-extension",
 	"displayName": "BDFD BDScript Tools",
-	"description": "Ever wanted to see all of your 428 errors in your BDScript code without running it? Well now you can with this extension",
+	"description": "Extension which gives you useful tools that might help you when working with BDScript",
 	"icon": "assets/icons/ext-icon.png",
 	"publisher": "ZetaZInteractive",
 	"version": "0.10.10",
