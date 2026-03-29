@@ -11,6 +11,31 @@ import {
     functions,
     permissionList
 } from '../shared/sharedData.js';
+import {
+    validateComponents
+} from './components.js';
+const varLabelMap = {
+    '$var':{varLabel:['Temporary Variable'],varKind:vscode.CompletionItemKind.Variable,argNum:0},
+    '$await':{varLabel:['Async Scope'],varKind:vscode.CompletionItemKind.Module,argNum:0},
+    '$addSection':{varLabel:['Container ID'],varKind:vscode.CompletionItemKind.Field,argNum:1},
+    '$addActionRow':{varLabel:['Container ID'],varKind:vscode.CompletionItemKind.Field,argNum:1},
+    '$addMediaGallery':{varLabel:['Container ID'],varKind:vscode.CompletionItemKind.Field,argNum:1},
+    '$addTextDisplay':{varLabel:['Container ID','Section ID'],varKind:vscode.CompletionItemKind.Field,argNum:1},
+    '$addSeparator':{varLabel:['Container ID'],varKind:vscode.CompletionItemKind.Field,argNum:2},
+    '$addMediaGalleryItem':{varLabel:['Gallery ID'],varKind:vscode.CompletionItemKind.Field,argNum:3},
+    '$addThumbnail':{varLabel:['Section ID'],varKind:vscode.CompletionItemKind.Field,argNum:4},
+    '$addButtonCV2':{varLabel:['Action Row ID','Section ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
+    '$addRoleSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
+    '$addUserSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
+    '$addStringSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
+    '$addStringSelectOption':{varLabel:['String Select ID'],varKind:vscode.CompletionItemKind.Struct,argNum:5},
+    '$addChannelSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
+    '$addMentionableSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5}
+};
+/*
+    spaghetti
+    
+*/
 export function bdscriptValidate(document, collection) {
     if(document.languageId !== 'bdscript') return;
     const documentText = document.getText();
@@ -20,6 +45,8 @@ export function bdscriptValidate(document, collection) {
         collection.set(document.uri, []);
         return;
     }
+    const advanced = vscode.workspace.getConfiguration('bdscript').get('enableFeaturesForAdvancedUsers');
+    const parsedVariables = parseVariables(document);
     const parsedIDs = parseIDs(document);
     const diagnostics = [];
     const blockDiagnostics = [];
@@ -51,13 +78,12 @@ export function bdscriptValidate(document, collection) {
         ));
     });
     const varDefs = new Map();
-    const varReads = new Set();
+    const varReads = new Map();
     for(let i = 0; i < documentText.length; i++) {
-    if(documentText[i] !== '$') continue;
-    const advanced = vscode.workspace.getConfiguration('bdscript').get('enableFeaturesForAdvancedUsers');
-    const varRegex = advanced
-        ?/^(?:\$\$c\[\]|%\{DOL\}%|\$)var/
-        :/^\$var/;
+        if(documentText[i] !== '$' && !(advanced && documentText[i] === '%')) continue;
+        const varRegex = advanced
+            ?/^(?:\$\$c\[\]|%\{DOL\}%|\$)var/
+            :/^\$var/;
         const nameMatch = documentText.slice(i).match(varRegex);
         if(!nameMatch) continue;
         const bracketStart = i + nameMatch[0].length;
@@ -94,7 +120,8 @@ export function bdscriptValidate(document, collection) {
                 document.positionAt(ii)
             ));
         } else {
-            varReads.add(varName);
+            if(!varReads.has(varName)) varReads.set(varName, []);
+            varReads.get(varName).push({line: document.positionAt(i).line, range: new vscode.Range(document.positionAt(i), document.positionAt(ii))});
         }
     }
     varDefs.forEach((ranges, name) => {
@@ -110,6 +137,74 @@ export function bdscriptValidate(document, collection) {
                 diagnostic.tags = [vscode.DiagnosticTag.Unnecessary];
                 diagnostics.push(diagnostic);
             });
+        }
+    });
+    varReads.forEach((reads, name) => {
+        const defRanges = varDefs.get(name);
+        reads.forEach(({line, range}) => {
+            const lineCommentFlags = getCommentFlags(document.lineAt(line).text);
+            if(lineCommentFlags.includes("$bdsDiagnosticLineDisable")) return;
+            if(defRanges) {
+                const definedBeforeRead = defRanges.some(defRange => defRange.start.line < line);
+                if(!definedBeforeRead) {
+                    const lineText = document.lineAt(line).text;
+                    const containsEscape = lineText.includes('$$c[]') || lineText.includes('%{DOL}%');
+                    if(!(disableInfo && containsEscape)) {
+                        diagnostics.push(new vscode.Diagnostic(
+                            range,
+                            `$var - Temporary Variable '${name}' is retrieved before being defined${containsEscape ? "\n(This may be ignored if you know what you're doing)" : ''}`,
+                            containsEscape?vscode.DiagnosticSeverity.Information:vscode.DiagnosticSeverity.Warning
+                        ));
+                    }
+                }
+            }
+        });
+    });
+    const asyncDefs = new Map();
+    const asyncReads = [];
+    for (let i = 0; i < documentText.length; i++) {
+        if (documentText[i] !== '$') continue;
+        const slice = documentText.slice(i);
+        const isAsync = slice.startsWith('$async[');
+        const isAwait = slice.startsWith('$await[');
+        if (!isAsync && !isAwait) continue;
+        const bracketStart = i + 6;
+        if (documentText[bracketStart] !== '[') continue;
+        let depth = 0, ii = bracketStart, fullCall = '';
+        while (ii < documentText.length) {
+            const char = documentText[ii];
+            if (char === '[') depth++;
+            if (char === ']') depth--;
+            fullCall += char;
+            ii++;
+            if (depth === 0) break;
+        }
+        if (depth !== 0) continue;
+        const firstArg = fullCall.slice(1, -1).split(';')[0].trim();
+        if (!firstArg) continue;
+        const startPosition = document.positionAt(i);
+        const endPosition = document.positionAt(ii);
+        const range = new vscode.Range(startPosition, endPosition);
+        const lineCommentFlags = getCommentFlags(document.lineAt(startPosition.line).text);
+        if (lineCommentFlags.includes("$bdsDiagnosticLineDisable")) continue;
+        if (isAsync) {
+            asyncDefs.set(firstArg, startPosition.line);
+        } else {
+            asyncReads.push({name:firstArg,line:startPosition.line,range});
+        }
+    }
+    asyncReads.forEach(({ name, line, range }) => {
+        const defLine = asyncDefs.get(name);
+        if(defLine !== undefined && line < defLine) {
+            const lineText = document.lineAt(line).text;
+            const containsEscape = lineText.includes('$$c[]') || lineText.includes('%{DOL}%');
+            if(!(disableInfo && containsEscape)) {
+                diagnostics.push(new vscode.Diagnostic(
+                    range,
+                    `$await - Async Scope '${name}' is awaited before being defined${containsEscape ? "\n(This may be ignored if you know what you're doing)" : ''}`,
+                    containsEscape?vscode.DiagnosticSeverity.Information:vscode.DiagnosticSeverity.Warning
+                ));
+            }
         }
     });
     parsedIDs.forEach(id => {
@@ -132,14 +227,18 @@ export function bdscriptValidate(document, collection) {
             });
         }
     });
+    if(!documentCommentFlags.includes('$bdsDiagnosticComponentDisable')) {
+        validateComponents(document, documentText, diagnostics, parsedIDs, documentCommentFlags);
+    }
     for(let i = 0; i < documentText.length; i++) {
-        if(documentText[i] !== '$') continue;
-        const nameMatch = documentText.slice(i).match(/^\$[a-zA-Z_][a-zA-Z0-9_]*/);
+        if(documentText[i] !== '$' && documentText.slice(i, i + 7) !== '%{DOL}%') continue;
+        const nameMatch = documentText.slice(i).match(advanced?/^(?:\$\$c\[\]|%\{DOL\}%|\$)[a-zA-Z_][a-zA-Z0-9_]*/:/^\$[a-zA-Z_][a-zA-Z0-9_]*/);
         if(!nameMatch) continue
         const funcName = nameMatch[0];
+        const normalizedFuncName = funcName.replace(/^\$\$c\[\]|^%\{DOL\}%/, '$');
         const bracketStart = i + funcName.length;
         const hasBracket = documentText[bracketStart] === '[';
-        const func = (hasBracket ? functions.find(func => func.tagStart === funcName && func.arguments.length > 0) : null) || functions.find(func => func.tagStart === funcName);
+        const func = (hasBracket?functions.find(func => func.tagStart === normalizedFuncName && func.arguments.length > 0):null) || functions.find(func => func.tagStart === normalizedFuncName);
         if(!func) {
             const startPosition = document.positionAt(i);
             const endPosition = document.positionAt(i + funcName.length);
@@ -236,7 +335,7 @@ export function bdscriptValidate(document, collection) {
         if((args.length > func.arguments.length) && !func.arguments.some(arg => arg.repeatable) && !(disableInfo && containsEscape) && funcName !== '$c') {
             diagnostics.push(new vscode.Diagnostic(
                 range,
-                `${func.tagStart} - Too many arguments, expected up to ${func.arguments.length}, got ${args.length}${containsEscape ? "\n(This may be ignored if you know what you're doing)" : ''}`,
+                `${func.tagStart} - Too many arguments, expected up to ${func.arguments.length}, got ${args.length}${containsEscape?"\n(This may be ignored if you know what you're doing)":''}`,
                 containsEscape?vscode.DiagnosticSeverity.Information:vscode.DiagnosticSeverity.Error
             ));
         }
@@ -244,7 +343,7 @@ export function bdscriptValidate(document, collection) {
         if((args.length < requiredArgsCount) && !(disableInfo && containsEscape)) {
             diagnostics.push(new vscode.Diagnostic(
                 range,
-                `${func.tagStart} - Expected at least ${requiredArgsCount} arguments, got ${args.length}${containsEscape ? "\n(This may be ignored if you know what you're doing)" : ''}`,
+                `${func.tagStart} - Expected at least ${requiredArgsCount} arguments, got ${args.length}${containsEscape?"\n(This may be ignored if you know what you're doing)":''}`,
                 containsEscape?vscode.DiagnosticSeverity.Information:vscode.DiagnosticSeverity.Error
             ));
         }
@@ -263,25 +362,6 @@ export function bdscriptValidate(document, collection) {
                 ?"argument '"+arg.name+"'"
                 :"position "+(index+1);
             const argValue = argumentValue?.trim();
-            const parsedVariables = parseVariables(document);
-            const varLabelMap = {
-                '$var':{varLabel:['Temporary Variable'],varKind:vscode.CompletionItemKind.Variable,argNum:0},
-                '$await':{varLabel:['Async Scope'],varKind:vscode.CompletionItemKind.Module,argNum:0},
-                '$addSection':{varLabel:['Container ID'],varKind:vscode.CompletionItemKind.Field,argNum:1},
-                '$addActionRow':{varLabel:['Container ID'],varKind:vscode.CompletionItemKind.Field,argNum:1},
-                '$addMediaGallery':{varLabel:['Container ID'],varKind:vscode.CompletionItemKind.Field,argNum:1},
-                '$addTextDisplay':{varLabel:['Container ID','Section ID'],varKind:vscode.CompletionItemKind.Field,argNum:1},
-                '$addSeparator':{varLabel:['Container ID'],varKind:vscode.CompletionItemKind.Field,argNum:2},
-                '$addMediaGalleryItem':{varLabel:['Gallery ID'],varKind:vscode.CompletionItemKind.Field,argNum:3},
-                '$addThumbnail':{varLabel:['Section ID'],varKind:vscode.CompletionItemKind.Field,argNum:4},
-                '$addButtonCV2':{varLabel:['Action Row ID','Section ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
-                '$addRoleSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
-                '$addUserSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
-                '$addStringSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
-                '$addStringSelectOption':{varLabel:['String Select ID'],varKind:vscode.CompletionItemKind.Struct,argNum:5},
-                '$addChannelSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5},
-                '$addMentionableSelect':{varLabel:['Action Row ID'],varKind:vscode.CompletionItemKind.Field,argNum:5}
-            };
             const {varLabel = null, varKind, argNum} = varLabelMap[func.tagStart] ?? {};
             if(varLabel && index === argNum) {
                 const varName = args[argNum]?.trim();

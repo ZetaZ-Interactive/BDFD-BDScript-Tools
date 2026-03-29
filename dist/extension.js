@@ -38,6 +38,7 @@ export function activate(context) {
         "$bdsDiagnosticDeprecatedDisable": "Directive used to disable warning about using deprecated functions in **Diagnostic Provider** in the current file",
         "$bdsDiagnosticInformationDisable": "Directive used to disable showing information severity in **Diagnostic Provider** in the current file",
         "$bdsDiagnosticLineDisable": "Directive used to disable **Diagnostic Provider** on the current line",
+        "$bdsDiagnosticComponentDisable": "Directive used to disable validation of message components in **Diagnostic Provider** in the current file",
         "$bdsDiagnosticUseArguments": "Directive used to show argument name errors instead of argument position errors in **Diagnostic Provider** in the current file",
         "$bdsDiagnosticIgnoreNests": "Directive used to disable **Diagnostic Provider** for nested functions in the current file",
         "$bdsColorDisable": "Directive used to disable **Color Provider** in the current file",
@@ -46,7 +47,7 @@ export function activate(context) {
         "$bdsHoverLineDisable": "Directive used to disable **Hover Provider** on the current line",
         "$bdsSignatureDisable": "Directive used to disable **Signature Help** in the current file",
         "$bdsSignatureLineDisable": "Directive used to disable **Signature Help** on the current line",
-        "$bdsDefinitionDisable": "Directive used to disable **Definition Provider** in the current file",
+        "$bdsDefinitionDisable": "Directive used to disable **Definition Provider** in the current file"
     };
     const completionProvider = vscode.languages.registerCompletionItemProvider(
         'bdscript',
@@ -144,24 +145,63 @@ export function activate(context) {
                 if(getDocumentFlags(document).includes("$bdsDefinitionDisable")) return;
                 const text = document.getText();
                 const offset = document.offsetAt(position);
+                const advanced = vscode.workspace.getConfiguration('bdscript').get('enableFeaturesForAdvancedUsers');
                 let start = offset;
                 while(start > 0 && text[start] !== '[' && text[start] !== ']' && text[start] !== ';') start--;
                 if(text[start] !== '[') return null;
                 const beforeBracket = text.slice(Math.max(0, start - 4), start);
-                const advanced = vscode.workspace.getConfiguration('bdscript').get('enableFeaturesForAdvancedUsers');
                 const isVar = beforeBracket === '$var' || (advanced && (
-                    text.slice(Math.max(0, start - 10), start).endsWith('$$c[]var') ||
-                    text.slice(Math.max(0, start - 11), start).endsWith('%{DOL}%var')
+                    text.slice(Math.max(0, start-10), start).endsWith('$$c[]var') ||
+                    text.slice(Math.max(0, start-11), start).endsWith('%{DOL}%var')
                 ));
                 const isAwait = text.slice(Math.max(0, start - 6), start) === '$await' || (advanced && (
-                    text.slice(Math.max(0, start - 12), start).endsWith('$$c[]await') ||
-                    text.slice(Math.max(0, start - 13), start).endsWith('%{DOL}%await')
+                    text.slice(Math.max(0, start-12), start).endsWith('$$c[]await') ||
+                    text.slice(Math.max(0, start-13), start).endsWith('%{DOL}%await')
                 ));
-                if(!isVar && !isAwait) return null;
+                const isAsync = text.slice(Math.max(0, start-6), start) === '$async' || (advanced && (
+                    text.slice(Math.max(0, start-12), start).endsWith('$$c[]async') ||
+                    text.slice(Math.max(0, start-13), start).endsWith('%{DOL}%async')
+                ));
+                const isVarDef = isVar && (() => {
+                    let end = start + 1;
+                    let depth = 0;
+                    let isDef = false;
+                    while(end < text.length && text[end] !== ']') {
+                        if(text[end] === '[') depth++;
+                        if(text[end] === ']' && depth > 0) depth--;
+                        if(text[end] === ';' && depth === 0) {
+                            isDef = true;
+                            break;
+                        }
+                        end++;
+                    }
+                    return isDef;
+                })();
                 let end = offset;
                 while(end < text.length && text[end] !== ';' && text[end] !== ']') end++;
                 const hoveredName = text.slice(start + 1, end).trim();
                 if(!hoveredName) return null;
+                if(isAsync || isVarDef) {
+                    const useRegex = isAsync
+                        ?/(?:\$\$c\[\]|%\{DOL\}%|\$)await\[([^\]]+)\]/g
+                        :/(?:\$\$c\[\]|%\{DOL\}%|\$)var\[([^\];]+)\]/g;
+                    const results = [];
+                    let match;
+                    while((match = useRegex.exec(text)) !== null) {
+                        if(match[1].trim() !== hoveredName) continue;
+                        if(isVarDef) {
+                            const fullMatch = match[0];
+                            const nameEnd = fullMatch.indexOf(hoveredName) + hoveredName.length;
+                            if(fullMatch[nameEnd] === ';') continue;
+                        }
+                        results.push(new vscode.Location(
+                            document.uri,
+                            new vscode.Range(document.positionAt(match.index), document.positionAt(match.index + match[0].length))
+                        ));
+                    }
+                    return results.length?results:null;
+                }
+                if(!isVar && !isAwait) return null;
                 const defRegex = isVar
                     ?/(?:\$\$c\[\]|%\{DOL\}%|\$)var\[([^\];]+);[^\]]*\]/g
                     :/(?:\$\$c\[\]|%\{DOL\}%|\$)async\[([^\]]+)\]/g;
@@ -174,9 +214,7 @@ export function activate(context) {
                         const endasyncPattern = /(?:\$\$c\[\]|%\{DOL\}%|\$)endasync/g;
                         endasyncPattern.lastIndex = rangeEnd;
                         const endasyncMatch = endasyncPattern.exec(text);
-                        if(endasyncMatch) {
-                            rangeEnd = endasyncMatch.index + endasyncMatch[0].length;
-                        }
+                        if(endasyncMatch) rangeEnd = endasyncMatch.index + endasyncMatch[0].length;
                     }
                     results.push(new vscode.Location(
                         document.uri,

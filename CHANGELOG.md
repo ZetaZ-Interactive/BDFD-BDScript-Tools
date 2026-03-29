@@ -1,4 +1,9 @@
 # Changelog
+## 0.11.0
+- Added Components validation
+- Added `$bdsDiagnosticComponentDisable` directive
+- Additions to Definition Provider
+- Additions to some diagnostics
 ## 0.10.12
 - Fixed diagnostics showing incorrect error for $addButton[]
 ## 0.10.11

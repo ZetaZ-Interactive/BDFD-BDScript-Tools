@@ -2,14 +2,17 @@ import * as vscode from 'vscode';
 import {
     functions
 } from '../shared/sharedData.js';
-const styleMap = {
-    0: '',
-    1: 'bold',
-    2: 'italic',
-    3: 'bold italic'
-};
 function convertStyle(style) {
-    return styleMap[style]
+    switch(style) {
+        case 1:
+            return 'bold';
+        case 2:
+            return 'italic';
+        case 3:
+            return 'bold italic';
+        default:
+            return '';
+    }
 }
 function decimalArgbToHexadecimalRgb(color) {
     return "#" + (color & 0xFFFFFF).toString(16).padStart(6, "0");
@@ -17,14 +20,14 @@ function decimalArgbToHexadecimalRgb(color) {
 function getHighlight(highlightRule) {
     const highlight = {};
     ['defaultTextHighlight', 'numberHighlight', 'fallbackHighlight', 'semicolonHighlight'].forEach(key => {
-        if (highlightRule[key]) {
+        if(highlightRule[key]) {
             highlight[key] = {
                 color: decimalArgbToHexadecimalRgb(highlightRule[key]?.color),
                 fontStyle: convertStyle(highlightRule[key].style)
             };
         }
     });
-    if (highlightRule.functionsHighlights) {
+    if(highlightRule.functionsHighlights) {
         for (const func in highlightRule.functionsHighlights) {
             const f = highlightRule.functionsHighlights[func];
             highlight[func] = {

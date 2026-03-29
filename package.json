@@ -4,7 +4,7 @@
 	"description": "Ever wanted to see all of your 428 errors in your BDScript code without running it? Well now you can with this extension",
 	"icon": "assets/icons/ext-icon.png",
 	"publisher": "ZetaZInteractive",
-	"version": "0.10.12",
+	"version": "0.11.0",
 	"repository": {
 		"url": "https://github.com/ZetaZ-Interactive/BDFD-BDScript-Tools"
 	},

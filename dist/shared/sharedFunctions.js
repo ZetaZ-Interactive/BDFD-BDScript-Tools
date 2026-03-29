@@ -27,7 +27,7 @@ export function docs(func, addTag, isCopy, isSignature) {
     func.isExperimental&&functionTags.push('📢 `Experiment`');
     func.beWise&&functionTags.push('🧙‍♂️ `Use this wisely!`');
     docs += functionTags.length?'\n'+functionTags.join('\n\n')+'\n':'';
-    if (func.arguments.length && !isSignature) {
+    if(func.arguments.length && !isSignature) {
         docs += '\n**Arguments:**\n\n';
         func.arguments.forEach(arg => {
             const argumentType = argType(arg);

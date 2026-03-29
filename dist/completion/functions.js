@@ -5,7 +5,7 @@ import {
 const cachedVariables = new WeakMap();
 const cachedIDs = new WeakMap();
 export function parseVariables(document) {
-    if (cachedVariables.has(document)) return cachedVariables.get(document); // (?:\$\$c\[\]|%\{DOL\}%|\$) || (?:\$)
+    if(cachedVariables.has(document)) return cachedVariables.get(document); // (?:\$\$c\[\]|%\{DOL\}%|\$) || (?:\$)
     const advanced = vscode.workspace.getConfiguration('bdscript').get('enableFeaturesForAdvancedUsers');
     const prefix = advanced?'(?:\\$\\$c\\[\\]|%\\{DOL\\}%|\\$)':'(?:\\$)';
     const completionItemData = [
@@ -68,17 +68,17 @@ export function parseVariables(document) {
     ];
     const discardIfMatch = /[^a-zA-Z0-9_\.\(\)]/;
     const variables = new Map();
-    for (let i = 0; i < document.lineCount; i++) {
+    for(let i = 0; i < document.lineCount; i++) {
         const line = document.lineAt(i).text;
         completionItemData.forEach(completion => {
             completion.regex.lastIndex = 0;
             let match;
-            while ((match = completion.regex.exec(line)) !== null) {
+            while((match = completion.regex.exec(line)) !== null) {
                 const varName = match[1];
-                if (!varName) continue;
-                if (discardIfMatch.test(varName) || varName.length < 1) continue;
+                if(!varName) continue;
+                if(discardIfMatch.test(varName) || varName.length < 1) continue;
                 const completionKey = `${completion.type}:${varName}`;
-                if (!variables.has(completionKey)) {
+                if(!variables.has(completionKey)) {
                     const mkd = new vscode.MarkdownString();
                     mkd.isTrusted = true;
                     mkd.appendMarkdown(completion.description)
@@ -96,34 +96,34 @@ export function parseVariables(document) {
         */
         const jsonStartRegex = new RegExp(`${prefix}(?:json|jsonSet|jsonSetString|jsonUnset|jsonExists|jsonArray|jsonArrayCount|jsonArrayIndex|jsonArrayAppend|jsonArrayPop|jsonArrayShift|jsonArrayUnshift|jsonArraySort|jsonArrayReverse|jsonJoinArray)\\[`, 'g');
         let jsonMatch;
-        while ((jsonMatch = jsonStartRegex.exec(line)) !== null) {
+        while((jsonMatch = jsonStartRegex.exec(line)) !== null) {
             const matchText = jsonMatch[0];
             const funcName = matchText.slice(1, matchText.length - 1);
             let iii = jsonMatch.index + matchText.length;
             let depth = 1;
             let key = '';
             const keys = [];
-            while (iii < line.length && depth > 0) {
+            while(iii < line.length && depth > 0) {
                 const char = line[iii];
-                if (char === '[') depth++;
-                if (char === ']') depth--;
-                if (char === ';' && depth === 1) {
+                if(char === '[') depth++;
+                if(char === ']') depth--;
+                if(char === ';' && depth === 1) {
                     keys.push(key.trim());
                     key = '';
-                } else if (depth > 0) {
+                } else if(depth > 0) {
                     key += char;
                 }
                 iii++;
             }
-            if (key) keys.push(key.trim());
+            if(key) keys.push(key.trim());
             const ignoreLast = /(jsonSet|jsonSetString|jsonArrayIndex|jsonArrayAppend|jsonArrayUnshift|jsonJoinArray)/;
-            if (ignoreLast.test(funcName) && keys.length > 0) {
+            if(ignoreLast.test(funcName) && keys.length > 0) {
                 keys.pop();
             }
             keys.forEach(jsonKey => {
-                if (!jsonKey || discardIfMatch.test(jsonKey) || jsonKey.length < 2) return;
+                if(!jsonKey || discardIfMatch.test(jsonKey) || jsonKey.length < 2) return;
                 const completionKey = `jsonKey:${jsonKey}`;
-                if (!variables.has(completionKey)) {
+                if(!variables.has(completionKey)) {
                     const mkd = new vscode.MarkdownString();
                     mkd.isTrusted = true;
                     mkd.appendMarkdown('**JSON Key** used by JSON functions like `$json[]` or `$jsonSet[]`');
