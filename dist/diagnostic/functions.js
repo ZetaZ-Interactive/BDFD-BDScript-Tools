@@ -152,7 +152,7 @@ export function bdscriptValidate(document, collection) {
                     if(!(disableInfo && containsEscape)) {
                         diagnostics.push(new vscode.Diagnostic(
                             range,
-                            `$var - Temporary Variable '${name}' is retrieved before being defined${containsEscape ? "\n(This may be ignored if you know what you're doing)" : ''}`,
+                            `$var - Temporary Variable '${name}' is retrieved before being defined${containsEscape?"\n(This may be ignored if you know what you're doing)":''}`,
                             containsEscape?vscode.DiagnosticSeverity.Information:vscode.DiagnosticSeverity.Warning
                         ));
                     }
@@ -201,7 +201,7 @@ export function bdscriptValidate(document, collection) {
             if(!(disableInfo && containsEscape)) {
                 diagnostics.push(new vscode.Diagnostic(
                     range,
-                    `$await - Async Scope '${name}' is awaited before being defined${containsEscape ? "\n(This may be ignored if you know what you're doing)" : ''}`,
+                    `$await - Async Scope '${name}' is awaited before being defined${containsEscape?"\n(This may be ignored if you know what you're doing)":''}`,
                     containsEscape?vscode.DiagnosticSeverity.Information:vscode.DiagnosticSeverity.Warning
                 ));
             }
